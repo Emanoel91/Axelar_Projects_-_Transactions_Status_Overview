@@ -238,9 +238,9 @@ with col2:
         fig2.update_layout(
             title="New User Metrics: Count and Growth",
             xaxis=dict(title="Date"),
-            yaxis=dict(title="New Users"),
+            yaxis=dict(title="Address count"),
             yaxis2=dict(
-                title="Cumulative New Users",
+                title="Address count",
                 overlaying="y",
                 side="right"
             ),
