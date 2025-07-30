@@ -22,27 +22,6 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# --- Info Box --------------------------------------------------------------------------------------------------------------
-st.markdown(
-    """
-    <div style="background-color: #ffc6a0; padding: 15px; border-radius: 10px; border: 1px solid #ffd700;">
-        The AXL token is the native cryptocurrency of the Axelar network, a decentralized blockchain interoperability platform designed to 
-connect multiple blockchains, enabling seamless cross-chain communication and asset transfers. Staking AXL tokens involves locking 
-them in the Axelar network to support its operations and security, in return for earning rewards.
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-st.info(
-    "📊Charts initially display data for a default time range. Select a custom range to view results for your desired period."
-
-)
-
-st.info(
-    "⏳On-chain data retrieval may take a few moments. Please wait while the results load."
-)
-
 # --- Snowflake Connection --------------------------------------------------------------------------------------------------
 conn = snowflake.connector.connect(
     user=st.secrets["snowflake"]["user"],
