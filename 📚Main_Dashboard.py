@@ -296,7 +296,15 @@ with col2:
     else:
         st.warning("No data available for new user metrics.")
 
-# --- Row4: Two Stacked Bar Charts Side by Side -----------------------------------------------------------------------
+# --- Row4: Two Stacked Bar Charts Side by Side -------------------------
+st.markdown(
+    """
+    <div style="background-color:#a2f09f; padding:1px; border-radius:10px;">
+        <h2 style="color:#000000; text-align:center;">💎Projects</h2>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 col1, col2 = st.columns(2)
 
 # Chart 1: Top User-Engaged Projects (Txns)
