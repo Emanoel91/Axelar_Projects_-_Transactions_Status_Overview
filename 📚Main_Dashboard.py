@@ -166,7 +166,15 @@ if not chain_summary.empty and not avg_block_time.empty:
     with col3:
         st.metric(label="Average Block Time", value=f"{avg_block_sec} sec")
 
-# --- Row3: Two Charts Side by Side (Transactions + New Users) ---------------------------------------------------------
+# --- Row3: Two Charts Side by Side (Transactions + New Users) ------------------------------------
+st.markdown(
+    """
+    <div style="background-color:#a2f09f; padding:1px; border-radius:10px;">
+        <h2 style="color:#000000; text-align:center;">🔗Transactions</h2>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
 col1, col2 = st.columns(2)
 
 # Chart 1: Comparing Successful vs. Unsuccessful Transactions
