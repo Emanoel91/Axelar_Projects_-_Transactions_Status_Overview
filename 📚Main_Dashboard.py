@@ -155,12 +155,30 @@ def load_top_projects_engagement():
     """
     return pd.read_sql(query, conn)
 
+# --- Row5 ---------------------------
+@st.cache_data
+def load_top_projects_all_time():
+    query = """
+        SELECT TOP 10
+            LABEL,
+            COUNT(tx_id) AS "Txns",
+            COUNT(DISTINCT tx_from) AS "Wallets"
+        FROM axelar.core.fact_msg_attributes
+        JOIN axelar.core.dim_labels ON address = ATTRIBUTE_VALUE 
+        JOIN axelar.core.fact_transactions USING(tx_id) 
+        WHERE LABEL_SUBTYPE != 'token_contract'
+        GROUP BY 1
+        ORDER BY 2 DESC
+    """
+    return pd.read_sql(query, conn)
+
 # --- Load Data ----------------------------------------------------------------------------------------
 chain_summary = load_chain_summary()
 avg_block_time = load_avg_block_time()
 tx_status = load_tx_success_fail()
 new_users = load_new_user_metrics()
 top_projects = load_top_projects_engagement()
+top_projects_all_time = load_top_projects_all_time()
 # ------------------------------------------------------------------------------------------------------
 # --- Row1: Chain Summary KPIs (Txns, Wallets, Fee) ------------------
 st.markdown(
@@ -346,6 +364,55 @@ with col2:
         st.plotly_chart(fig2, use_container_width=True)
     else:
         st.warning("No data available for Users' Favorite Projects.")
+
+# --- Row5: Two Donut Charts Side by Side ------------------------------------------------------------------------------
+col1, col2 = st.columns(2)
+
+# Chart 1: Donut - Top User-Engaged Projects by Txns
+with col1:
+    if not top_projects_all_time.empty:
+        fig1 = go.Figure(
+            data=[
+                go.Pie(
+                    labels=top_projects_all_time["LABEL"],
+                    values=top_projects_all_time["Txns"],
+                    hole=0.5,
+                    textinfo="label+percent",
+                    hovertemplate="%{label}<br>%{value} Txns"
+                )
+            ]
+        )
+        fig1.update_layout(
+            title="Top User-Engaged Projects (Based on the Number of Transactions at All Times)",
+            height=500,
+            legend=dict(orientation="v", x=1.05, y=0.5)
+        )
+        st.plotly_chart(fig1, use_container_width=True)
+    else:
+        st.warning("No data available for Top User-Engaged Projects by Transactions.")
+
+# Chart 2: Donut - Top Picks by Wallets
+with col2:
+    if not top_projects_all_time.empty:
+        fig2 = go.Figure(
+            data=[
+                go.Pie(
+                    labels=top_projects_all_time["LABEL"],
+                    values=top_projects_all_time["Wallets"],
+                    hole=0.5,
+                    textinfo="label+percent",
+                    hovertemplate="%{label}<br>%{value} Wallets"
+                )
+            ]
+        )
+        fig2.update_layout(
+            title="Top Picks: Users' Favorite Projects (Based on the Number of Users at All Times)",
+            height=500,
+            legend=dict(orientation="v", x=1.05, y=0.5)
+        )
+        st.plotly_chart(fig2, use_container_width=True)
+    else:
+        st.warning("No data available for Top Picks by Wallets.")
 
 
 
