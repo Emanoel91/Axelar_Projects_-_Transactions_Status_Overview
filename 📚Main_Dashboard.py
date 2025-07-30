@@ -45,10 +45,6 @@ conn = snowflake.connector.connect(
     schema="PUBLIC"
 )
 
-# --- Time Frame & Period Selection ---
-start_date = st.date_input("Start Date", value=pd.to_datetime("2022-01-01"))
-end_date = st.date_input("End Date", value=pd.to_datetime("2025-06-30"))
-
 # --- Query Functions ---------------------------------------------------------------------------------------
 # --- Row 1: Total Amounts Staked, Unstaked, and Net Staked ---
 
