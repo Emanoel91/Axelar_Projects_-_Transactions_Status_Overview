@@ -174,6 +174,7 @@ with col1:
     if not tx_status.empty:
         fig1 = go.Figure()
 
+        # Bar (primary y-axis)
         fig1.add_trace(go.Bar(
             x=tx_status["Date"],
             y=tx_status["Successful Transactions"],
@@ -182,19 +183,25 @@ with col1:
             yaxis="y"
         ))
 
+        # Line (secondary y-axis)
         fig1.add_trace(go.Scatter(
             x=tx_status["Date"],
             y=tx_status["Failed Transactions"],
             name="Failed Transactions",
             mode="lines+markers",
             line=dict(color="#fc0060", width=2),
-            yaxis="y"
+            yaxis="y2"
         ))
 
         fig1.update_layout(
             title="Comparing Successful vs. Unsuccessful Transactions",
             xaxis=dict(title="Date"),
-            yaxis=dict(title="Number of Transactions"),
+            yaxis=dict(title="Successful Transactions"),
+            yaxis2=dict(
+                title="Failed Transactions",
+                overlaying="y",
+                side="right"
+            ),
             height=500,
             legend=dict(orientation="h", y=-0.2, x=0.5, xanchor="center"),
             barmode="group"
@@ -209,6 +216,7 @@ with col2:
     if not new_users.empty:
         fig2 = go.Figure()
 
+        # Bar (primary y-axis)
         fig2.add_trace(go.Bar(
             x=new_users["Date"],
             y=new_users["New Users"],
@@ -217,19 +225,25 @@ with col2:
             yaxis="y"
         ))
 
+        # Line (secondary y-axis)
         fig2.add_trace(go.Scatter(
             x=new_users["Date"],
             y=new_users["Cumulative New Users"],
             name="Cumulative New Users",
             mode="lines+markers",
             line=dict(color="#ffeb5a", width=2),
-            yaxis="y"
+            yaxis="y2"
         ))
 
         fig2.update_layout(
             title="New User Metrics: Count and Growth",
             xaxis=dict(title="Date"),
-            yaxis=dict(title="Number of Users"),
+            yaxis=dict(title="New Users"),
+            yaxis2=dict(
+                title="Cumulative New Users",
+                overlaying="y",
+                side="right"
+            ),
             height=500,
             legend=dict(orientation="h", y=-0.2, x=0.5, xanchor="center"),
             barmode="group"
@@ -238,6 +252,7 @@ with col2:
         st.plotly_chart(fig2, use_container_width=True)
     else:
         st.warning("No data available for new user metrics.")
+
 
 
 # --- Reference and Rebuild Info -------------------------------------------------------------------------------------------------------------------------------------
