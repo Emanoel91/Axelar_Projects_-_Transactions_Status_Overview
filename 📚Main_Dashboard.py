@@ -46,13 +46,82 @@ conn = snowflake.connector.connect(
 )
 
 # --- Query Functions ---------------------------------------------------------------------------------------
+# --- Row 1,2 -------------------------
+@st.cache_data
+def load_chain_summary():
+    query = """
+        SELECT
+            COUNT(DISTINCT tx_id) AS "Number of Transactions",
+            COUNT(DISTINCT block_timestamp::date) AS "Activity days",
+            COUNT(DISTINCT tx_from) AS "Number of Users",
+            ROUND((COUNT(DISTINCT tx_id) / COUNT(DISTINCT block_timestamp::date)) / 24) AS TPH,
+            ROUND((COUNT(DISTINCT tx_id) / COUNT(DISTINCT block_timestamp::date)) / 24 / 60) AS TPM,
+            ROUND((COUNT(DISTINCT tx_id) / COUNT(DISTINCT block_timestamp::date)) / 24 / 60 / 60) AS TPS,
+            ROUND(SUM(fee / 1e6), 2) AS "Total Fee"
+        FROM axelar.core.fact_transactions
+        WHERE TX_SUCCEEDED = TRUE
+    """
+    return pd.read_sql(query, conn)
 
+@st.cache_data
+def load_avg_block_time():
+    query = """
+        WITH ordered_blocks AS (
+            SELECT 
+                block_id,
+                block_timestamp,
+                LAG(block_timestamp) OVER (ORDER BY block_id) AS prev_timestamp
+            FROM axelar.core.fact_blocks
+        ),
+        block_diffs AS (
+            SELECT 
+                block_id,
+                DATEDIFF('second', prev_timestamp, block_timestamp) AS block_time_seconds
+            FROM ordered_blocks
+            WHERE prev_timestamp IS NOT NULL
+        )
+        SELECT 
+            ROUND(AVG(block_time_seconds), 2) AS avg_block_time_seconds
+        FROM block_diffs
+    """
+    return pd.read_sql(query, conn)
 
 # --- Load Data ----------------------------------------------------------------------------------------
-
+chain_summary = load_chain_summary()
+avg_block_time = load_avg_block_time()
 # ------------------------------------------------------------------------------------------------------
+# --- Row1: Chain Summary KPIs (Txns, Wallets, Fee) ------------------
+if not chain_summary.empty:
+    stats = chain_summary.iloc[0]
+    col1, col2, col3 = st.columns(3)
 
-# --- Reference and Rebuild Info --------------------------------------------------------------------------------------
+    with col1:
+        st.metric(label="Number of Transactions", value=f"{stats['Number of Transactions']:,} Txns")
+
+    with col2:
+        st.metric(label="Number of Users", value=f"{stats['Number of Users']:,} Wallets")
+
+    with col3:
+        st.metric(label="Total Fee", value=f"{stats['Total Fee']:,} AXL")
+
+# --- Row2: Performance KPIs (TPM, TPS, Avg Block Time) ---------------
+if not chain_summary.empty and not avg_block_time.empty:
+    stats = chain_summary.iloc[0]
+    avg_block_sec = avg_block_time["avg_block_time_seconds"].iloc[0]
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.metric(label="Transaction per Minute (TPM)", value=f"{stats['TPM']} Txns")
+
+    with col2:
+        st.metric(label="Transaction per Second (TPS)", value=f"{stats['TPS']} Txns")
+
+    with col3:
+        st.metric(label="Average Block Time", value=f"{avg_block_sec} sec")
+
+
+# --- Reference and Rebuild Info -------------------------------------------------------------------------------------------------------------------------------------
 st.markdown(
     """
     <div style="margin-top: 20px; margin-bottom: 20px; font-size: 16px;">
