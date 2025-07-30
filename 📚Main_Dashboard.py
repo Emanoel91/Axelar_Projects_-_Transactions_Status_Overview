@@ -6,8 +6,8 @@ import plotly.graph_objects as go
 
 # --- Page Config: Tab Title & Icon -------------------------------------------------------------------------------------
 st.set_page_config(
-    page_title="Axelar Staking",
-    page_icon="https://pbs.twimg.com/profile_images/1877235283755778048/4nlylmxm_400x400.jpg",
+    page_title="Axelar Projects & Transactions Status Overview",
+    page_icon="https://img.cryptorank.io/coins/axelar1663924228506.png",
     layout="wide"
 )
 
