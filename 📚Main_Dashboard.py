@@ -236,7 +236,7 @@ with col2:
         ))
 
         fig2.update_layout(
-            title="New User Metrics: Count and Growth",
+            title="New User Metrics: Count and Growth per Week",
             xaxis=dict(title="Date"),
             yaxis=dict(title="Address count"),
             yaxis2=dict(
