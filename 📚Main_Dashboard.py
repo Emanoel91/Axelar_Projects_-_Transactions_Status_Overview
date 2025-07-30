@@ -86,9 +86,46 @@ def load_avg_block_time():
     """
     return pd.read_sql(query, conn)
 
+# --- Row 3 -----------------------------------
+@st.cache_data
+def load_tx_success_fail():
+    query = """
+        SELECT
+            DATE_TRUNC(week, block_timestamp)::date AS "Date",
+            COUNT(IFF(TX_SUCCEEDED = TRUE, 1, NULL)) AS "Successful Transactions",
+            COUNT(IFF(TX_SUCCEEDED = FALSE, 1, NULL)) AS "Failed Transactions",
+            COUNT(DISTINCT tx_id) AS TXs
+        FROM axelar.core.fact_transactions
+        GROUP BY 1
+        ORDER BY 1
+    """
+    return pd.read_sql(query, conn)
+
+@st.cache_data
+def load_new_user_metrics():
+    query = """
+        WITH lst_all AS (
+            SELECT 
+                tx_from,
+                MIN(block_timestamp)::date AS min_date
+            FROM axelar.core.fact_transactions
+            GROUP BY 1
+        )
+        SELECT 
+            DATE_TRUNC(week, min_date) AS "Date",
+            COUNT(DISTINCT tx_from) AS "New Users",
+            SUM(COUNT(DISTINCT tx_from)) OVER (ORDER BY DATE_TRUNC(week, min_date)) AS "Cumulative New Users"
+        FROM lst_all
+        GROUP BY 1
+        ORDER BY 1
+    """
+    return pd.read_sql(query, conn)
+
 # --- Load Data ----------------------------------------------------------------------------------------
 chain_summary = load_chain_summary()
 avg_block_time = load_avg_block_time()
+tx_status = load_tx_success_fail()
+new_users = load_new_user_metrics()
 # ------------------------------------------------------------------------------------------------------
 # --- Row1: Chain Summary KPIs (Txns, Wallets, Fee) ------------------
 st.markdown(
@@ -128,6 +165,79 @@ if not chain_summary.empty and not avg_block_time.empty:
 
     with col3:
         st.metric(label="Average Block Time", value=f"{avg_block_sec} sec")
+
+# --- Row3: Two Charts Side by Side (Transactions + New Users) ---------------------------------------------------------
+col1, col2 = st.columns(2)
+
+# Chart 1: Comparing Successful vs. Unsuccessful Transactions
+with col1:
+    if not tx_status.empty:
+        fig1 = go.Figure()
+
+        fig1.add_trace(go.Bar(
+            x=tx_status["Date"],
+            y=tx_status["Successful Transactions"],
+            name="Successful Transactions",
+            marker_color="#0099ff",
+            yaxis="y"
+        ))
+
+        fig1.add_trace(go.Scatter(
+            x=tx_status["Date"],
+            y=tx_status["Failed Transactions"],
+            name="Failed Transactions",
+            mode="lines+markers",
+            line=dict(color="#fc0060", width=2),
+            yaxis="y"
+        ))
+
+        fig1.update_layout(
+            title="Comparing Successful vs. Unsuccessful Transactions",
+            xaxis=dict(title="Date"),
+            yaxis=dict(title="Number of Transactions"),
+            height=500,
+            legend=dict(orientation="h", y=-0.2, x=0.5, xanchor="center"),
+            barmode="group"
+        )
+
+        st.plotly_chart(fig1, use_container_width=True)
+    else:
+        st.warning("No data available for transaction success/failure.")
+
+# Chart 2: New User Metrics: Count and Growth
+with col2:
+    if not new_users.empty:
+        fig2 = go.Figure()
+
+        fig2.add_trace(go.Bar(
+            x=new_users["Date"],
+            y=new_users["New Users"],
+            name="New Users",
+            marker_color="#0099ff",
+            yaxis="y"
+        ))
+
+        fig2.add_trace(go.Scatter(
+            x=new_users["Date"],
+            y=new_users["Cumulative New Users"],
+            name="Cumulative New Users",
+            mode="lines+markers",
+            line=dict(color="#ffeb5a", width=2),
+            yaxis="y"
+        ))
+
+        fig2.update_layout(
+            title="New User Metrics: Count and Growth",
+            xaxis=dict(title="Date"),
+            yaxis=dict(title="Number of Users"),
+            height=500,
+            legend=dict(orientation="h", y=-0.2, x=0.5, xanchor="center"),
+            barmode="group"
+        )
+
+        st.plotly_chart(fig2, use_container_width=True)
+    else:
+        st.warning("No data available for new user metrics.")
 
 
 # --- Reference and Rebuild Info -------------------------------------------------------------------------------------------------------------------------------------
