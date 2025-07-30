@@ -307,7 +307,7 @@ with col1:
             x="Date",
             y="Txns",
             color="LABEL",
-            title="Top User-Engaged Projects",
+            title="Top User-Engaged Projects: Number of Transactions per Day (30D)",
             labels={"LABEL": "Project", "Txns": "Number of Transactions"},
         )
         fig1.update_layout(
@@ -327,7 +327,7 @@ with col2:
             x="Date",
             y="Wallets",
             color="LABEL",
-            title="Top Picks: Users' Favorite Projects",
+            title="Top Picks: Users' Favorite Projects: Number of Users per Day (30D)",
             labels={"LABEL": "Project", "Wallets": "Number of Wallets"},
         )
         fig2.update_layout(
