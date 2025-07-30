@@ -81,7 +81,7 @@ def load_avg_block_time():
             WHERE prev_timestamp IS NOT NULL
         )
         SELECT 
-            ROUND(AVG(block_time_seconds), 2) AS avg_block_time_seconds
+            ROUND(AVG(block_time_seconds), 2) AS "Average Block Time"
         FROM block_diffs
     """
     return pd.read_sql(query, conn)
@@ -107,7 +107,7 @@ if not chain_summary.empty:
 # --- Row2: Performance KPIs (TPM, TPS, Avg Block Time) ---------------
 if not chain_summary.empty and not avg_block_time.empty:
     stats = chain_summary.iloc[0]
-    avg_block_sec = avg_block_time["avg_block_time_seconds"].iloc[0]
+    avg_block_sec = avg_block_time["Average Block Time"].iloc[0]
 
     col1, col2, col3 = st.columns(3)
 
