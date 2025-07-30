@@ -121,11 +121,46 @@ def load_new_user_metrics():
     """
     return pd.read_sql(query, conn)
 
+# --- Row4 -------------------------------
+# --- Query Function --------------------------------------------------------------------------------------------------
+@st.cache_data
+def load_top_projects_engagement():
+    query = """
+        WITH lst_top AS (
+            SELECT TOP 10 
+                LABEL,
+                COUNT(tx_id) AS TXs,
+                COUNT(DISTINCT tx_from) AS "Wallets"
+            FROM axelar.core.fact_msg_attributes
+            JOIN axelar.core.dim_labels ON address = ATTRIBUTE_VALUE 
+            JOIN axelar.core.fact_transactions USING(tx_id) 
+            WHERE block_timestamp::date >= CURRENT_DATE - 30
+              AND LABEL_SUBTYPE != 'token_contract'  
+            GROUP BY 1
+            ORDER BY TXs DESC  
+        )
+        SELECT 
+            DATE_TRUNC(day, block_timestamp)::date AS "Date",
+            LABEL,
+            COUNT(tx_id) AS "Txns",
+            COUNT(DISTINCT tx_from) AS "Wallets"
+        FROM axelar.core.fact_msg_attributes
+        JOIN axelar.core.dim_labels ON address = ATTRIBUTE_VALUE 
+        JOIN axelar.core.fact_transactions USING(tx_id) 
+        WHERE block_timestamp::date >= CURRENT_DATE - 30
+          AND LABEL_SUBTYPE != 'token_contract'
+          AND LABEL IN (SELECT label FROM lst_top)
+        GROUP BY 1,2
+        ORDER BY 1
+    """
+    return pd.read_sql(query, conn)
+
 # --- Load Data ----------------------------------------------------------------------------------------
 chain_summary = load_chain_summary()
 avg_block_time = load_avg_block_time()
 tx_status = load_tx_success_fail()
 new_users = load_new_user_metrics()
+top_projects = load_top_projects_engagement()
 # ------------------------------------------------------------------------------------------------------
 # --- Row1: Chain Summary KPIs (Txns, Wallets, Fee) ------------------
 st.markdown(
@@ -260,6 +295,49 @@ with col2:
         st.plotly_chart(fig2, use_container_width=True)
     else:
         st.warning("No data available for new user metrics.")
+
+# --- Row4: Two Stacked Bar Charts Side by Side -----------------------------------------------------------------------
+col1, col2 = st.columns(2)
+
+# Chart 1: Top User-Engaged Projects (Txns)
+with col1:
+    if not top_projects.empty:
+        fig1 = px.bar(
+            top_projects,
+            x="Date",
+            y="Txns",
+            color="LABEL",
+            title="Top User-Engaged Projects",
+            labels={"LABEL": "Project", "Txns": "Number of Transactions"},
+        )
+        fig1.update_layout(
+            barmode="stack",
+            height=500,
+            legend=dict(orientation="v", x=1.05, y=1)
+        )
+        st.plotly_chart(fig1, use_container_width=True)
+    else:
+        st.warning("No data available for Top User-Engaged Projects.")
+
+# Chart 2: Top Picks: Users' Favorite Projects (Wallets)
+with col2:
+    if not top_projects.empty:
+        fig2 = px.bar(
+            top_projects,
+            x="Date",
+            y="Wallets",
+            color="LABEL",
+            title="Top Picks: Users' Favorite Projects",
+            labels={"LABEL": "Project", "Wallets": "Number of Wallets"},
+        )
+        fig2.update_layout(
+            barmode="stack",
+            height=500,
+            legend=dict(orientation="v", x=1.05, y=1)
+        )
+        st.plotly_chart(fig2, use_container_width=True)
+    else:
+        st.warning("No data available for Users' Favorite Projects.")
 
 
 
