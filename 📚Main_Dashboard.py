@@ -167,6 +167,7 @@ def load_top_projects_all_time():
         JOIN axelar.core.dim_labels ON address = ATTRIBUTE_VALUE 
         JOIN axelar.core.fact_transactions USING(tx_id) 
         WHERE LABEL_SUBTYPE != 'token_contract'
+        and block_timestamp::date >= CURRENT_DATE - 30
         GROUP BY 1
         ORDER BY 2 DESC
     """
@@ -383,7 +384,7 @@ with col1:
             ]
         )
         fig1.update_layout(
-            title="Top User-Engaged Projects (Based on the Number of Transactions at All Times)",
+            title="Top User-Engaged Projects (Based on the Number of Transactions 30D)",
             height=500,
             legend=dict(orientation="v", x=1.05, y=0.5)
         )
@@ -406,7 +407,7 @@ with col2:
             ]
         )
         fig2.update_layout(
-            title="Top Picks: Users' Favorite Projects (Based on the Number of Users at All Times)",
+            title="Top Picks: Users' Favorite Projects (Based on the Number of Users 30D)",
             height=500,
             legend=dict(orientation="v", x=1.05, y=0.5)
         )
