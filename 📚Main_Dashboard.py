@@ -91,6 +91,15 @@ chain_summary = load_chain_summary()
 avg_block_time = load_avg_block_time()
 # ------------------------------------------------------------------------------------------------------
 # --- Row1: Chain Summary KPIs (Txns, Wallets, Fee) ------------------
+st.markdown(
+    """
+    <div style="background-color:#a2f09f; padding:1px; border-radius:10px;">
+        <h2 style="color:#000000; text-align:center;">📋Overview</h2>
+    </div>
+    """,
+    unsafe_allow_html=True
+)
+
 if not chain_summary.empty:
     stats = chain_summary.iloc[0]
     col1, col2, col3 = st.columns(3)
