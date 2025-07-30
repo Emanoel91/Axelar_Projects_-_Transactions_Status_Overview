@@ -194,11 +194,11 @@ with col1:
         ))
 
         fig1.update_layout(
-            title="Comparing Successful vs. Unsuccessful Transactions",
+            title="Comparing Successful vs. Unsuccessful Transactions per Week",
             xaxis=dict(title="Date"),
-            yaxis=dict(title="Successful Transactions"),
+            yaxis=dict(title="Txns count"),
             yaxis2=dict(
-                title="Failed Transactions",
+                title="Txns count",
                 overlaying="y",
                 side="right"
             ),
