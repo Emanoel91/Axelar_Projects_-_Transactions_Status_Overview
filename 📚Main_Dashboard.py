@@ -35,6 +35,8 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+st.info("On-chain data retrieval may take a few moments. Please wait while the results load.☕")
+
 # --- Snowflake Connection --------------------------------------------------------------------------------------------------
 conn = snowflake.connector.connect(
     user=st.secrets["snowflake"]["user"],
